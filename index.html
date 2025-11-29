@@ -4,6 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WiFi User Capacity Calculator</title>
+    <!-- Anti-flickering script -->
+
+<script>
+    var timeout = 3000; // Timeout value to remove the flicker (in milliseconds)
+    !(function (h, i, d, e) {
+      var t,
+        n = h.createElement("style");
+      (n.id = e),
+        (n.innerHTML = "body{opacity:0}"),
+        h.head.appendChild(n),
+        (t = d),
+        (i.rmfk = function () {
+          var t = h.getElementById(e);
+          t && t.parentNode.removeChild(t);
+        }),
+        setTimeout(i.rmfk, t);
+    })(document, window, timeout, "abhide");
+  </script>
+  
+  <!-- MVTLab Orchestrator -->
+  <script
+    src="https://staging-svc.mvtlab.io/scripts/engine.js"
+    data-project-key="EJotxSWE3aVgtRrC-E-0ew"
+    data-mvt="engine"
+    data-flicker-class="abtest-hidden"
+    async
+  ></script>
     <style>
         * {
             margin: 0;
