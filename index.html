@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi User Capacity Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Layered neutral tones for dark mode */
+            --bg-primary: #111111;
+            --bg-secondary: #151515;
+            --bg-tertiary: #1E1E1E;
+            --bg-elevated: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a3a3a3;
+            --text-tertiary: #737373;
+            --text-label: #e5e5e5;
+            --border-color: #2a2a2a;
+            --border-hover: #404040;
+            --gauge-bg: #151515;
+            --gauge-progress: #ffffff;
+            --gauge-ticks: #333333;
+            --button-border: #333333;
+            --button-bg-hover: rgba(255, 255, 255, 0.05);
+            --card-hover: rgba(255, 255, 255, 0.03);
+            --accent-color: #60a5fa;
+            --accent-hover: #3b82f6;
+            --accent-glow: rgba(96, 165, 250, 0.2);
+            
+            /* Shadows for depth */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+            --shadow-ambient: 0 0 40px rgba(0, 0, 0, 0.3);
+            
+            /* Consistent border radius */
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+            --radius-full: 50px;
+            
+            /* Spacing Scale (8px base unit) */
+            --spacing-1: 8px;
+            --spacing-2: 12px;
+            --spacing-3: 16px;
+            --spacing-4: 24px;
+            --spacing-5: 32px;
+            --spacing-6: 40px;
+            --spacing-7: 48px;
+            --spacing-8: 64px;
+            
+            /* Typography Scale */
+            --font-title: 32px;
+            --font-subtitle: 13px;
+            --font-metric-large: 64px;
+            --font-metric-medium: 32px;
+            --font-label: 13px;
+            --font-body: 14px;
+            --font-caption: 12px;
+            --font-small: 10px;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-tertiary: #e8e8e8;
+            --bg-elevated: #ffffff;
+            --text-primary: #0a0a0a;
+            --text-secondary: #404040;
+            --text-tertiary: #525252;
+            --text-label: #0a0a0a;
+            --border-color: #d4d4d4;
+            --border-hover: #a3a3a3;
+            --gauge-bg: #e8e8e8;
+            --gauge-progress: #0a0a0a;
+            --gauge-ticks: #a3a3a3;
+            --button-border: #a3a3a3;
+            --button-bg-hover: rgba(0, 0, 0, 0.08);
+            --card-hover: rgba(0, 0, 0, 0.04);
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-glow: rgba(37, 99, 235, 0.2);
+            
+            /* Shadows for depth */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
+            --shadow-ambient: 0 0 40px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: radial-gradient(ellipse at top, var(--bg-secondary) 0%, var(--bg-primary) 50%, var(--bg-primary) 100%);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-3);
+            overflow: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(96, 165, 250, 0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(96, 165, 250, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        [data-theme="light"] body::before {
+            background: radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.02) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.02) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            max-height: 100vh;
+            overflow-y: auto;
+            padding: var(--spacing-4);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: var(--spacing-7);
+        }
+
+        h1 {
+            font-size: var(--font-title);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-1);
+            letter-spacing: -0.5px;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        .subtitle {
+            font-size: var(--font-body);
+            font-weight: 400;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+            transition: color 0.3s ease;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: var(--spacing-4);
+            right: var(--spacing-4);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: var(--radius-full);
+            width: var(--spacing-7);
+            height: var(--spacing-7);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-elevated);
+            transform: rotate(20deg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-6);
+            max-width: 1200px;
+            margin: 0 auto;
+            align-items: start;
+        }
+
+        .left-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-4);
+        }
+
+        .right-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-4);
+        }
+
+        .card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-5);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm), var(--shadow-ambient);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md), var(--shadow-ambient);
+            border-color: var(--border-hover);
+            background: var(--bg-elevated);
+        }
+
+        .speed-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .speed-gauge {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .speed-gauge svg {
+            position: absolute;
+            transform: rotate(-90deg);
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: var(--gauge-bg);
+            stroke-width: 3;
+            transition: stroke 0.3s ease;
+        }
+
+        .gauge-progress {
+            fill: none;
+            stroke: var(--gauge-progress);
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+        }
+
+        .gauge-ticks line {
+            stroke: var(--gauge-ticks);
+            stroke-width: 2;
+            stroke-linecap: round;
+            transition: stroke 0.3s ease;
+        }
+
+        .speed-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .main-speed {
+            font-size: var(--font-metric-large);
+            font-weight: 700;
+            line-height: 1;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+            transition: all 0.3s ease;
+        }
+
+        .speed-unit {
+            font-size: var(--font-body);
+            font-weight: 500;
+            color: var(--text-label);
+            margin-top: var(--spacing-1);
+            transition: color 0.3s ease;
+        }
+
+        .speed-label {
+            font-size: var(--font-label);
+            color: var(--text-label);
+            font-weight: 600;
+            text-align: center;
+            transition: color 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stats-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-4);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: var(--spacing-4);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-md);
+            background: var(--bg-tertiary);
+        }
+
+        .stat-label {
+            font-size: var(--font-label);
+            font-weight: 600;
+            color: var(--text-label);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--spacing-2);
+        }
+
+        .stat-value {
+            font-size: var(--font-metric-medium);
+            font-weight: 700;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+            transition: color 0.3s ease;
+            line-height: 1;
+        }
+
+        .stat-unit {
+            font-size: var(--font-body);
+            font-weight: 500;
+            color: var(--text-label);
+            margin-left: var(--spacing-1);
+        }
+
+        .connection-info {
+            text-align: center;
+            padding: 0;
+            margin-top: var(--spacing-3);
+            margin-bottom: var(--spacing-3);
+        }
+
+        .isp-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-1);
+            margin-bottom: var(--spacing-2);
+        }
+
+        .isp-icon {
+            font-size: 18px;
+            opacity: 0.8;
+        }
+
+        .isp-name {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: color 0.3s ease;
+        }
+
+        .location-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-4);
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-1);
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .info-icon {
+            font-size: 14px;
+            opacity: 0.6;
+        }
+
+
+        button {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: var(--spacing-2) var(--spacing-5);
+            font-size: var(--font-body);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.3px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .testing-indicator {
+            display: none;
+            margin: var(--spacing-2) 0;
+        }
+
+        .testing-text {
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-2);
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .progress-ring {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+        }
+
+        .progress-ring-circle {
+            stroke: #333;
+            stroke-width: 4;
+            fill: transparent;
+        }
+
+        .progress-ring-active {
+            stroke: #ffffff;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+
+        .device-card {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: var(--spacing-4);
+            padding: var(--spacing-4);
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            transition: all 0.3s ease;
+        }
+
+        .device-card:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
+
+        .device-icon {
+            font-size: 48px;
+            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .device-card:hover .device-icon {
+            border-color: var(--border-hover);
+        }
+
+        .device-content {
+            flex: 1;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-1);
+        }
+
+        .device-label {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-2);
+            transition: color 0.3s ease;
+        }
+
+        .device-count {
+            font-size: var(--font-metric-large);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.3s ease;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .powered-by-link {
+            text-decoration: none;
+            display: inline-flex;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .powered-by-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .powered-by {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-3);
+            margin-top: var(--spacing-5);
+            padding: var(--spacing-4);
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .powered-text {
+            font-size: var(--font-body);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .prime-logo {
+            height: 70px;
+            width: auto;
+            transition: filter 0.3s ease;
+        }
+
+        .prime-logo-dark {
+            display: block;
+        }
+
+        .prime-logo-light {
+            display: none;
+        }
+
+        [data-theme="light"] .prime-logo-dark {
+            display: none;
+        }
+
+        [data-theme="light"] .prime-logo-light {
+            display: block;
+        }
+
+        .powered-by-link:hover .prime-logo {
+            filter: brightness(1.1);
+        }
+
+        .section-title {
+            font-size: var(--font-label);
+            font-weight: 600;
+            color: var(--text-label);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--spacing-4);
+            text-align: center;
+        }
+
+        .devices-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-4);
+        }
+
+        .usage-selector-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: var(--spacing-3);
+        }
+
+        .usage-description {
+            text-align: center;
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: capitalize;
+            margin-top: var(--spacing-2);
+            padding: var(--spacing-2) 0;
+            transition: all 0.3s ease;
+        }
+
+        .usage-selector {
+            display: inline-flex;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: var(--spacing-1);
+            gap: 0;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        [data-theme="light"] .usage-selector {
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .usage-option {
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-full);
+            padding: var(--spacing-2) var(--spacing-5);
+            font-size: var(--font-label);
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            position: relative;
+            z-index: 1;
+            min-width: 110px;
+            text-align: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .usage-option:hover:not(.active) {
+            color: var(--text-primary);
+            background: var(--button-bg-hover);
+        }
+
+        .usage-option:active:not(.active) {
+            transform: scale(0.98);
+        }
+
+        .usage-option.active {
+            background: var(--accent-color);
+            color: #ffffff;
+            box-shadow: 0 2px 12px var(--accent-glow), 0 0 0 1px var(--accent-color);
+            font-weight: 600;
+        }
+
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .testing .gauge-progress {
+            stroke: var(--text-secondary);
+        }
+
+        .testing .main-speed {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @media (max-width: 1024px) {
+            :root {
+                --font-title: 30px;
+                --spacing-6: 32px;
+                --spacing-7: 40px;
+            }
+
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-5);
+            }
+
+            .header-section {
+                margin-bottom: var(--spacing-6);
+            }
+
+            .devices-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --font-title: 28px;
+                --font-metric-large: 52px;
+                --font-metric-medium: 28px;
+                --font-label: 12px;
+                --font-body: 13px;
+                --font-caption: 11px;
+                --font-small: 9px;
+            }
+
+            .speed-gauge {
+                width: 180px;
+                height: 180px;
+            }
+
+            .speed-gauge svg {
+                width: 180px;
+                height: 180px;
+            }
+
+            .card {
+                padding: var(--spacing-4);
+            }
+
+            .stats-card {
+                gap: var(--spacing-3);
+            }
+
+            .stat-item {
+                padding: var(--spacing-4);
+            }
+
+            .device-card {
+                padding: var(--spacing-4);
+                gap: var(--spacing-3);
+            }
+
+            .device-icon {
+                width: 64px;
+                height: 64px;
+                font-size: 40px;
+            }
+
+            .main-layout {
+                gap: var(--spacing-4);
+            }
+
+            .left-section, .right-section {
+                gap: var(--spacing-4);
+            }
+
+            .usage-selector-wrapper {
+                width: 100%;
+            }
+
+            .usage-selector {
+                padding: var(--spacing-1);
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .usage-option {
+                padding: var(--spacing-2) var(--spacing-4);
+                font-size: 12px;
+                min-width: 0;
+                flex: 1;
+            }
+
+        }
+
+        @media (max-height: 700px) {
+            .speed-gauge {
+                width: 200px;
+                height: 200px;
+            }
+
+            .speed-gauge svg {
+                width: 200px;
+                height: 200px;
+            }
+
+            .device-card {
+                padding: var(--spacing-4);
+                gap: var(--spacing-3);
+            }
+
+            .device-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 32px;
+            }
+
+            .speed-display {
+                margin: var(--spacing-2) 0;
+            }
+
+            .result-section {
+                margin-top: var(--spacing-3);
+                padding-top: var(--spacing-3);
+            }
+
+            .speed-label {
+                margin-top: var(--spacing-3);
+            }
+
+            .isp-row {
+                margin-bottom: var(--spacing-2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <span id="themeIcon">🌙</span>
+    </button>
+    
+    <div class="container">
+        <div class="header-section">
+            <h1>WiFi Capacity Calculator</h1>
+            <p class="subtitle">Test your connection and see how many devices can connect simultaneously</p>
+        </div>
+
+        <div class="main-layout" id="mainLayout">
+            <!-- Left Section: Speed Test -->
+            <div class="left-section">
+                <!-- Speed Gauge Card -->
+                <div class="card">
+                    <div class="speed-display" id="speedDisplay">
+                        <div class="speed-gauge">
+                            <svg width="200" height="200" viewBox="0 0 200 200">
+                                <!-- Tick marks -->
+                                <g class="gauge-ticks" id="gaugeTicks"></g>
+                                <!-- Background circle -->
+                                <circle class="gauge-bg" cx="100" cy="100" r="85" />
+                                <!-- Progress circle -->
+                                <circle class="gauge-progress" id="gaugeProgress" cx="100" cy="100" r="85" 
+                                        stroke-dasharray="534" stroke-dashoffset="534" />
+                            </svg>
+                            <div class="speed-content">
+                                <div class="main-speed" id="mainSpeed">--</div>
+                                <div class="speed-unit">Mbps</div>
+                            </div>
+                        </div>
+                        <div class="speed-label" id="speedLabel">Your Internet Speed</div>
+
+                        <!-- Testing Indicator -->
+                        <div class="testing-indicator" id="testingIndicator">
+                            <div class="testing-text" id="testingText">Testing your connection...</div>
+                        </div>
+
+                        <!-- Test Button -->
+                        <div style="margin-top: 20px;">
+                            <button id="testSpeedBtn">Start Test</button>
+                        </div>
+
+                        <!-- Connection Info -->
+                        <div class="connection-info" id="connectionInfo">
+                            <div class="isp-row">
+                                <span class="isp-icon">🌐</span>
+                                <span class="isp-name" id="ispName">Loading...</span>
+                            </div>
+                            <div class="location-row">
+                                <div class="info-item">
+                                    <span class="info-icon">📍</span>
+                                    <span id="ipAddress">Loading...</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-icon">🌍</span>
+                                    <span id="location">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Card -->
+                <div class="card stats-card">
+                    <div class="stat-item">
+                        <div class="stat-label">Download</div>
+                        <div class="stat-value" id="downloadSpeed">--</div>
+                        <div class="stat-unit">Mbps</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Upload</div>
+                        <div class="stat-value" id="uploadSpeed">--</div>
+                        <div class="stat-unit">Mbps</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Section: Device Capacity -->
+            <div class="right-section">
+                <!-- Usage Selector Card -->
+                <div class="card">
+                    <div class="section-title">Device Capacity</div>
+                    <div class="usage-selector-wrapper">
+                        <div class="usage-selector">
+                            <div class="usage-option active" data-usage="light">Light</div>
+                            <div class="usage-option" data-usage="medium">Medium</div>
+                            <div class="usage-option" data-usage="heavy">Heavy</div>
+                        </div>
+                    </div>
+                    <div class="usage-description" id="usageDescription">Browsing and emails</div>
+                </div>
+
+                <!-- Device Capacity Cards -->
+                <div class="card">
+                    <div class="devices-grid">
+                        <!-- Mobile Devices Card -->
+                        <div class="device-card">
+                            <div class="device-icon">📱</div>
+                            <div class="device-content">
+                                <div class="device-label">Mobile Devices</div>
+                                <div class="device-count" id="mobileCount">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Desktop Devices Card -->
+                        <div class="device-card">
+                            <div class="device-icon">💻</div>
+                            <div class="device-content">
+                                <div class="device-label">Desktop Devices</div>
+                                <div class="device-count" id="desktopCount">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Powered By Section -->
+                <div class="powered-by">
+                    <span class="powered-text">Powered by</span>
+                    <a href="https://cricketnepal.org.np/event/nepal-premier-league/" target="_blank" rel="noopener noreferrer" class="powered-by-link">
+                        <img src="npl logo .png" alt="Nepal Premier League" class="prime-logo prime-logo-dark">
+                        <img src="npl white.png" alt="Nepal Premier League" class="prime-logo prime-logo-light">
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Usage profiles for MOBILE devices (per user)
+        const mobileProfiles = {
+            light: {
+                download: 0.5,
+                upload: 0.1,
+                description: 'browsing and emails'
+            },
+            medium: {
+                download: 2,
+                upload: 0.3,
+                description: 'HD video and social media'
+            },
+            heavy: {
+                download: 5,
+                upload: 1,
+                description: '4K streaming and gaming'
+            }
+        };
+
+        // Usage profiles for DESKTOP devices (per user)
+        const desktopProfiles = {
+            light: {
+                download: 1.5,
+                upload: 0.3,
+                description: 'browsing and emails'
+            },
+            medium: {
+                download: 5,
+                upload: 1,
+                description: 'HD video and social media'
+            },
+            heavy: {
+                download: 15,
+                upload: 3,
+                description: '4K streaming and gaming'
+            }
+        };
+
+        const EFFICIENCY_FACTOR = 0.7;
+
+        let detectedDownloadSpeed = 0;
+        let detectedUploadSpeed = 0;
+        let currentUsage = 'light'; // Match the default active button in UI
+        const maxSpeed = 500; // Maximum speed for gauge (Mbps)
+
+        // Theme management
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+
+        // Load saved theme or default to dark
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+        
+        if (savedTheme === 'light') {
+            themeIcon.textContent = '☀️';
+        } else {
+            themeIcon.textContent = '🌙';
+        }
+
+        // Theme toggle handler
+        themeToggle.addEventListener('click', function() {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme === 'light' ? 'light' : null);
+            themeIcon.textContent = newTheme === 'light' ? '☀️' : '🌙';
+            localStorage.setItem('theme', newTheme);
+            
+            console.log(`Theme switched to: ${newTheme}`);
+        });
+
+        // Initialize gauge ticks and fetch connection info on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            createGaugeTicks();
+            fetchConnectionInfo();
+        });
+
+        async function fetchConnectionInfo() {
+            try {
+                console.log('Fetching connection information...');
+                
+                // Method 1: Try ip-api.com (no authentication needed, good CORS support)
+                try {
+                    const response = await fetch('http://ip-api.com/json/?fields=status,message,country,city,isp,query,org');
+                    const data = await response.json();
+                    
+                    console.log('API Response:', data);
+                    
+                    if (data.status === 'success') {
+                        document.getElementById('ispName').textContent = data.isp || data.org || 'ISP Available';
+                        document.getElementById('ipAddress').textContent = data.query || 'IP Detected';
+                        document.getElementById('location').textContent = 
+                            (data.city && data.country) ? `${data.city}, ${data.country}` : 
+                            (data.country || 'Location Detected');
+                        
+                        console.log('✓ Connection Info Success:', {
+                            ISP: data.isp || data.org,
+                            IP: data.query,
+                            Location: `${data.city}, ${data.country}`
+                        });
+                        return;
+                    } else {
+                        console.warn('API returned error:', data.message);
+                    }
+                } catch (error) {
+                    console.warn('ip-api.com failed:', error);
+                }
+                
+                // Method 2: Try ipapi.co
+                try {
+                    const response = await fetch('https://ipapi.co/json/');
+                    const data = await response.json();
+                    
+                    if (data && data.ip && !data.error) {
+                        document.getElementById('ispName').textContent = data.org || 'ISP Available';
+                        document.getElementById('ipAddress').textContent = data.ip;
+                        document.getElementById('location').textContent = 
+                            (data.city && data.country_name) ? `${data.city}, ${data.country_name}` : 
+                            (data.country_name || 'Location Available');
+                        
+                        console.log('✓ Connection Info Success (ipapi.co):', data);
+                        return;
+                    }
+                } catch (error) {
+                    console.warn('ipapi.co failed:', error);
+                }
+                
+                // Method 3: Simple IP only
+                try {
+                    const response = await fetch('https://api.ipify.org?format=json');
+                    const data = await response.json();
+                    
+                    if (data.ip) {
+                        document.getElementById('ipAddress').textContent = data.ip;
+                        document.getElementById('ispName').textContent = 'Your ISP';
+                        document.getElementById('location').textContent = 'Your Location';
+                        console.log('✓ IP Only:', data.ip);
+                        return;
+                    }
+                } catch (error) {
+                    console.warn('ipify failed:', error);
+                }
+                
+                throw new Error('All methods failed');
+                
+            } catch (error) {
+                console.error('❌ All APIs failed:', error);
+                document.getElementById('ispName').textContent = 'Connection Info';
+                document.getElementById('ipAddress').textContent = 'Your IP Address';
+                document.getElementById('location').textContent = 'Your Location';
+            }
+        }
+
+        function createGaugeTicks() {
+            const ticksContainer = document.getElementById('gaugeTicks');
+            const numTicks = 40;
+            const radius = 85;
+            const centerX = 100;
+            const centerY = 100;
+            
+            for (let i = 0; i < numTicks; i++) {
+                const angle = (i / numTicks) * 2 * Math.PI;
+                const x1 = centerX + (radius - 8) * Math.cos(angle);
+                const y1 = centerY + (radius - 8) * Math.sin(angle);
+                const x2 = centerX + (radius + 2) * Math.cos(angle);
+                const y2 = centerY + (radius + 2) * Math.sin(angle);
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                ticksContainer.appendChild(line);
+            }
+        }
+
+        function updateGauge(speed) {
+            const gaugeProgress = document.getElementById('gaugeProgress');
+            const circumference = 2 * Math.PI * 85; // 2πr where r=85
+            const percentage = Math.min(speed / maxSpeed, 1);
+            const offset = circumference * (1 - percentage);
+            gaugeProgress.style.strokeDashoffset = offset;
+        }
+
+        // Event listeners
+        document.getElementById('testSpeedBtn').addEventListener('click', runSpeedTest);
+        
+        // Usage selector listeners
+        document.querySelectorAll('.usage-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.usage-option').forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                currentUsage = this.getAttribute('data-usage');
+                
+                // Update usage description
+                const usageDescriptions = {
+                    light: 'Browsing and emails',
+                    medium: 'HD video and social media',
+                    heavy: '4K streaming and gaming'
+                };
+                document.getElementById('usageDescription').textContent = usageDescriptions[currentUsage];
+                
+                if (detectedDownloadSpeed > 0) {
+                    calculateUsers();
+                }
+            });
+        });
+
+        async function runSpeedTest() {
+            console.log('=== Starting Speed Test ===');
+            
+            const testBtn = document.getElementById('testSpeedBtn');
+            const mainSpeed = document.getElementById('mainSpeed');
+            const speedLabel = document.getElementById('speedLabel');
+            const testingIndicator = document.getElementById('testingIndicator');
+            const testingText = document.getElementById('testingText');
+            const speedsContainer = document.getElementById('speedsContainer');
+            const speedDisplay = document.getElementById('speedDisplay');
+            
+            // Show testing state
+            testBtn.disabled = true;
+            testingIndicator.style.display = 'block';
+            speedDisplay.classList.add('testing');
+            mainSpeed.textContent = '...';
+            speedLabel.textContent = 'Testing your connection';
+            
+            try {
+                // Test Download Speed
+                testingText.textContent = 'Testing download speed...';
+                
+                const downloadSpeed = await testDownloadSpeed();
+                detectedDownloadSpeed = downloadSpeed;
+                console.log('Set detectedDownloadSpeed to:', detectedDownloadSpeed);
+                
+                // Animate the speed counting up
+                await animateSpeed(mainSpeed, 0, downloadSpeed, 1000);
+                
+                console.log(`Download Speed: ${downloadSpeed.toFixed(2)} Mbps`);
+                
+                // Test Upload Speed
+                testingText.textContent = 'Testing upload speed...';
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const uploadSpeed = await testUploadSpeed();
+                detectedUploadSpeed = uploadSpeed;
+                console.log('Set detectedUploadSpeed to:', detectedUploadSpeed);
+                
+                console.log(`Upload Speed: ${uploadSpeed.toFixed(2)} Mbps`);
+                
+                // Show results
+                testingText.textContent = 'Complete';
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Update UI
+                speedDisplay.classList.remove('testing');
+                testingIndicator.style.display = 'none';
+                mainSpeed.textContent = downloadSpeed.toFixed(0);
+                speedLabel.textContent = 'Your Internet Speed';
+                
+                // Show detailed speeds in stats card
+                const downloadSpeedElements = document.querySelectorAll('#downloadSpeed');
+                const uploadSpeedElements = document.querySelectorAll('#uploadSpeed');
+                downloadSpeedElements.forEach(el => el.textContent = downloadSpeed.toFixed(1));
+                uploadSpeedElements.forEach(el => el.textContent = uploadSpeed.toFixed(1));
+                
+                // Results are already visible
+                
+                testBtn.disabled = false;
+                testBtn.textContent = 'Test Again';
+                
+                console.log('=== Speed Test Complete ===');
+                console.log('Current speeds - Download:', detectedDownloadSpeed, 'Upload:', detectedUploadSpeed);
+                console.log('About to call calculateUsers()...');
+                
+                // Update gauge with final value
+                updateGauge(downloadSpeed);
+                
+                // Small delay to ensure all DOM updates are complete
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Auto-calculate and update device counts
+                calculateUsers();
+                console.log('calculateUsers() finished');
+                console.log('Final UI state - Mobile:', document.getElementById('mobileCount').textContent, 
+                           'Desktop:', document.getElementById('desktopCount').textContent);
+                
+            } catch (error) {
+                console.error('Speed test error:', error);
+                testingText.textContent = 'Test failed';
+                speedDisplay.classList.remove('testing');
+                mainSpeed.textContent = '--';
+                speedLabel.textContent = 'Test failed, please try again';
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                testingIndicator.style.display = 'none';
+                testBtn.disabled = false;
+            }
+        }
+
+        async function animateSpeed(element, start, end, duration) {
+            const startTime = performance.now();
+            
+            return new Promise(resolve => {
+                function update() {
+                    const currentTime = performance.now();
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Easing function for smooth animation
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = start + (end - start) * eased;
+                    
+                    element.textContent = Math.round(current);
+                    updateGauge(current); // Update circular gauge
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    } else {
+                        resolve();
+                    }
+                }
+                update();
+            });
+        }
+
+        async function testDownloadSpeed() {
+            // Use multiple test files for better accuracy
+            const testUrls = [
+                'https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js',
+                'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js',
+                'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js'
+            ];
+            
+            let totalSpeed = 0;
+            let successfulTests = 0;
+            
+            for (const url of testUrls) {
+                try {
+                    const startTime = performance.now();
+                    const response = await fetch(url + '?t=' + Date.now(), { 
+                        cache: 'no-store',
+                        mode: 'cors'
+                    });
+                    const data = await response.blob();
+                    const endTime = performance.now();
+                    
+                    const durationSeconds = (endTime - startTime) / 1000;
+                    const bitsLoaded = data.size * 8;
+                    const speedBps = bitsLoaded / durationSeconds;
+                    const speedMbps = speedBps / (1024 * 1024);
+                    
+                    console.log(`Test ${successfulTests + 1}: ${speedMbps.toFixed(2)} Mbps (${data.size} bytes in ${durationSeconds.toFixed(2)}s)`);
+                    
+                    if (speedMbps > 0 && speedMbps < 10000) { // Sanity check
+                        totalSpeed += speedMbps;
+                        successfulTests++;
+                    }
+                } catch (error) {
+                    console.warn('Download test failed for', url, error);
+                }
+            }
+            
+            if (successfulTests === 0) {
+                // Fallback: estimate based on connection type
+                return estimateSpeed();
+            }
+            
+            return totalSpeed / successfulTests;
+        }
+
+        async function testUploadSpeed() {
+            // Upload testing is tricky without a server
+            // We'll use a public service that accepts POST requests
+            try {
+                const testData = new Blob([new ArrayBuffer(100000)]); // 100KB test
+                const startTime = performance.now();
+                
+                // Using httpbin.org which accepts POST requests
+                const response = await fetch('https://httpbin.org/post', {
+                    method: 'POST',
+                    body: testData,
+                    headers: {
+                        'Content-Type': 'application/octet-stream'
+                    }
+                });
+                
+                const endTime = performance.now();
+                const durationSeconds = (endTime - startTime) / 1000;
+                const bitsUploaded = testData.size * 8;
+                const speedBps = bitsUploaded / durationSeconds;
+                const speedMbps = speedBps / (1024 * 1024);
+                
+                console.log(`Upload test: ${speedMbps.toFixed(2)} Mbps (${testData.size} bytes in ${durationSeconds.toFixed(2)}s)`);
+                
+                if (speedMbps > 0 && speedMbps < 10000) {
+                    return speedMbps;
+                }
+            } catch (error) {
+                console.warn('Upload test failed, estimating...', error);
+            }
+            
+            // Fallback: estimate upload as 20-30% of download (typical for most connections)
+            return detectedDownloadSpeed * 0.25;
+        }
+
+        function estimateSpeed() {
+            // Fallback estimation based on connection type
+            if (navigator.connection && navigator.connection.effectiveType) {
+                const connectionType = navigator.connection.effectiveType;
+                console.log('Using connection type estimation:', connectionType);
+                
+                switch(connectionType) {
+                    case 'slow-2g': return 0.5;
+                    case '2g': return 1;
+                    case '3g': return 5;
+                    case '4g': return 30;
+                    default: return 50;
+                }
+            }
+            return 50; // Default assumption
+        }
+
+        function calculateUsers() {
+            console.log('=== calculateUsers() called ===');
+            console.log('detectedDownloadSpeed:', detectedDownloadSpeed);
+            console.log('detectedUploadSpeed:', detectedUploadSpeed);
+            
+            // Use detected speeds
+            const downloadSpeed = detectedDownloadSpeed;
+            const uploadSpeed = detectedUploadSpeed;
+            const usageType = currentUsage;
+
+            // Validate inputs
+            if (downloadSpeed <= 0 || uploadSpeed <= 0) {
+                console.warn('Invalid speeds - returning early');
+                return;
+            }
+
+            // Calculate usable bandwidth
+            const usableDownload = downloadSpeed * EFFICIENCY_FACTOR;
+            const usableUpload = uploadSpeed * EFFICIENCY_FACTOR;
+
+            // Calculate for MOBILE devices
+            const mobileProfile = mobileProfiles[usageType];
+            const maxMobileByDownload = usableDownload / mobileProfile.download;
+            const maxMobileByUpload = usableUpload / mobileProfile.upload;
+            const maxMobile = Math.floor(Math.min(maxMobileByDownload, maxMobileByUpload));
+            const mobileBottleneck = maxMobileByDownload < maxMobileByUpload ? 'download' : 'upload';
+
+            // Calculate for DESKTOP devices
+            const desktopProfile = desktopProfiles[usageType];
+            const maxDesktopByDownload = usableDownload / desktopProfile.download;
+            const maxDesktopByUpload = usableUpload / desktopProfile.upload;
+            const maxDesktop = Math.floor(Math.min(maxDesktopByDownload, maxDesktopByUpload));
+            const desktopBottleneck = maxDesktopByDownload < maxDesktopByUpload ? 'download' : 'upload';
+
+            // Update UI
+            console.log('Updating UI with counts:', maxMobile, maxDesktop);
+            const mobileCountEl = document.getElementById('mobileCount');
+            const desktopCountEl = document.getElementById('desktopCount');
+            
+            if (mobileCountEl) {
+                mobileCountEl.textContent = maxMobile;
+                console.log('Mobile count updated to:', maxMobile);
+            } else {
+                console.error('mobileCount element not found!');
+            }
+            
+            if (desktopCountEl) {
+                desktopCountEl.textContent = maxDesktop;
+                console.log('Desktop count updated to:', maxDesktop);
+            } else {
+                console.error('desktopCount element not found!');
+            }
+
+            // Log calculation details (for debugging)
+            console.log('=== WiFi Capacity Calculation ===');
+            console.log(`Input - Download: ${downloadSpeed.toFixed(2)} Mbps, Upload: ${uploadSpeed.toFixed(2)} Mbps`);
+            console.log(`Usable - Download: ${usableDownload.toFixed(2)} Mbps, Upload: ${usableUpload.toFixed(2)} Mbps`);
+            console.log(`Usage Type: ${usageType}`);
+            console.log('');
+            console.log('MOBILE DEVICES:');
+            console.log(`  Requirements: ${mobileProfile.download} Mbps down, ${mobileProfile.upload} Mbps up per device`);
+            console.log(`  Max by download: ${maxMobileByDownload.toFixed(2)}`);
+            console.log(`  Max by upload: ${maxMobileByUpload.toFixed(2)}`);
+            console.log(`  Bottleneck: ${mobileBottleneck}`);
+            console.log(`  Result: ${maxMobile} mobile devices`);
+            console.log('');
+            console.log('DESKTOP DEVICES:');
+            console.log(`  Requirements: ${desktopProfile.download} Mbps down, ${desktopProfile.upload} Mbps up per device`);
+            console.log(`  Max by download: ${maxDesktopByDownload.toFixed(2)}`);
+            console.log(`  Max by upload: ${maxDesktopByUpload.toFixed(2)}`);
+            console.log(`  Bottleneck: ${desktopBottleneck}`);
+            console.log(`  Result: ${maxDesktop} desktop devices`);
+            console.log('================================');
+        }
+    </script>
+</body>
+</html>
+
