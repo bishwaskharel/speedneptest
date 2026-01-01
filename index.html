@@ -6,6 +6,8 @@
     <title>WiFi User Capacity Calculator</title>
     <!-- Anti-flickering script -->
 
+<!-- Anti-flickering script -->
+
 <script>
     var timeout = 3000; // Timeout value to remove the flicker (in milliseconds)
     !(function (h, i, d, e) {
@@ -26,7 +28,7 @@
   <!-- MVTLab Orchestrator -->
   <script
     src="https://staging-svc.mvtlab.io/scripts/engine.js"
-    data-project-key="EJotxSWE3aVgtRrC-E-0ew"
+    data-project-key="F1wNTVJAR-HkpgiWu5_u9w"
     data-mvt="engine"
     data-flicker-class="abtest-hidden"
     async
@@ -193,10 +195,63 @@
             transition: color 0.3s ease;
         }
 
-        .theme-toggle {
+        .top-nav {
             position: fixed;
             top: var(--spacing-4);
             right: var(--spacing-4);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            z-index: 1000;
+        }
+
+        .contact-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: var(--radius-full);
+            padding: var(--spacing-2) var(--spacing-4);
+            cursor: pointer;
+            font-size: var(--font-body);
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .contact-btn:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-elevated);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .subscribe-btn {
+            background: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            color: white;
+            border-radius: var(--radius-full);
+            padding: var(--spacing-2) var(--spacing-4);
+            cursor: pointer;
+            font-size: var(--font-body);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .subscribe-btn:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+            box-shadow: 0 4px 20px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        .theme-toggle {
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
@@ -861,9 +916,12 @@
     </style>
 </head>
 <body>
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-        <span id="themeIcon">🌙</span>
-    </button>
+    <div class="top-nav">
+        <a href="pricing.html" class="subscribe-btn">Subscribe Now</a>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <span id="themeIcon">🌙</span>
+        </button>
+    </div>
     
     <div class="container">
         <div class="header-section">

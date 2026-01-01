@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - WiFi Capacity Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Layered neutral tones for dark mode */
+            --bg-primary: #111111;
+            --bg-secondary: #151515;
+            --bg-tertiary: #1E1E1E;
+            --bg-elevated: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a3a3a3;
+            --text-tertiary: #737373;
+            --text-label: #e5e5e5;
+            --border-color: #2a2a2a;
+            --border-hover: #404040;
+            --button-border: #333333;
+            --button-bg-hover: rgba(255, 255, 255, 0.05);
+            --card-hover: rgba(255, 255, 255, 0.03);
+            --accent-color: #60a5fa;
+            --accent-hover: #3b82f6;
+            --accent-glow: rgba(96, 165, 250, 0.2);
+            --success-color: #22c55e;
+            --popular-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            
+            /* Shadows for depth */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+            
+            /* Consistent border radius */
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+            --radius-full: 50px;
+            
+            /* Spacing Scale */
+            --spacing-1: 8px;
+            --spacing-2: 12px;
+            --spacing-3: 16px;
+            --spacing-4: 24px;
+            --spacing-5: 32px;
+            --spacing-6: 40px;
+            --spacing-7: 48px;
+            --spacing-8: 64px;
+            
+            /* Typography Scale */
+            --font-title: 36px;
+            --font-subtitle: 14px;
+            --font-price: 48px;
+            --font-label: 13px;
+            --font-body: 14px;
+            --font-caption: 12px;
+            --font-small: 10px;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-tertiary: #e8e8e8;
+            --bg-elevated: #fafafa;
+            --text-primary: #111111;
+            --text-secondary: #525252;
+            --text-tertiary: #737373;
+            --text-label: #262626;
+            --border-color: #d4d4d4;
+            --border-hover: #a3a3a3;
+            --button-border: #d4d4d4;
+            --button-bg-hover: rgba(0, 0, 0, 0.05);
+            --card-hover: rgba(0, 0, 0, 0.03);
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-glow: rgba(37, 99, 235, 0.2);
+            
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            background-image: radial-gradient(ellipse at top, var(--bg-secondary) 0%, var(--bg-primary) 50%);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+            padding: var(--spacing-4);
+            padding-bottom: var(--spacing-8);
+        }
+
+        .top-nav {
+            position: fixed;
+            top: var(--spacing-4);
+            right: var(--spacing-4);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            z-index: 1000;
+        }
+
+        .back-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: var(--radius-full);
+            padding: var(--spacing-2) var(--spacing-4);
+            cursor: pointer;
+            font-size: var(--font-body);
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-1);
+        }
+
+        .back-btn:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-elevated);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: var(--radius-full);
+            width: var(--spacing-7);
+            height: var(--spacing-7);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-elevated);
+            transform: rotate(20deg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding-top: var(--spacing-8);
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: var(--spacing-7);
+        }
+
+        h1 {
+            font-size: var(--font-title);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-2);
+            letter-spacing: -0.5px;
+            transition: color 0.3s ease;
+        }
+
+        .subtitle {
+            font-size: var(--font-subtitle);
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+            transition: color 0.3s ease;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-4);
+            align-items: stretch;
+        }
+
+        .pricing-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-5);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--border-hover);
+        }
+
+        .pricing-card.popular {
+            border: 2px solid var(--accent-color);
+            transform: scale(1.02);
+            box-shadow: 0 8px 40px var(--accent-glow);
+        }
+
+        .pricing-card.popular:hover {
+            transform: scale(1.02) translateY(-4px);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--popular-gradient);
+            color: white;
+            padding: 6px 20px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-small);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .plan-header {
+            text-align: center;
+            padding-bottom: var(--spacing-4);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: var(--spacing-4);
+        }
+
+        .plan-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-1);
+        }
+
+        .plan-description {
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+        }
+
+        .plan-price {
+            text-align: center;
+            margin-bottom: var(--spacing-4);
+        }
+
+        .price-amount {
+            font-size: var(--font-price);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .price-currency {
+            font-size: 24px;
+            vertical-align: super;
+            margin-right: 4px;
+        }
+
+        .price-period {
+            font-size: var(--font-body);
+            color: var(--text-secondary);
+            margin-top: var(--spacing-1);
+        }
+
+        .features-list {
+            list-style: none;
+            flex: 1;
+            margin-bottom: var(--spacing-4);
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-2);
+            padding: var(--spacing-2) 0;
+            font-size: var(--font-body);
+            color: var(--text-secondary);
+        }
+
+        .feature-icon {
+            color: var(--success-color);
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .feature-item.disabled {
+            opacity: 0.5;
+        }
+
+        .feature-item.disabled .feature-icon {
+            color: var(--text-tertiary);
+        }
+
+        .cta-button {
+            width: 100%;
+            padding: var(--spacing-3) var(--spacing-4);
+            border-radius: var(--radius-full);
+            font-size: var(--font-body);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+        }
+
+        .cta-button.primary {
+            background: var(--accent-color);
+            border: none;
+            color: white;
+        }
+
+        .cta-button.primary:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 20px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .cta-button.secondary:hover {
+            background: var(--button-bg-hover);
+            border-color: var(--border-hover);
+        }
+
+        .single-cta {
+            display: flex;
+            justify-content: center;
+            margin-top: var(--spacing-6);
+        }
+
+        .cta-button.large {
+            padding: var(--spacing-4) var(--spacing-8);
+            font-size: 18px;
+            min-width: 280px;
+        }
+
+        .guarantee {
+            text-align: center;
+            margin-top: var(--spacing-6);
+            padding: var(--spacing-4);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .guarantee-icon {
+            font-size: 32px;
+            margin-bottom: var(--spacing-2);
+        }
+
+        .guarantee-title {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-1);
+        }
+
+        .guarantee-text {
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+        }
+
+        /* Powered By Section */
+        .powered-by {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-3);
+            margin-top: var(--spacing-6);
+            padding: var(--spacing-4);
+            opacity: 0.8;
+        }
+
+        .powered-text {
+            font-size: var(--font-body);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .powered-by-link {
+            text-decoration: none;
+            display: inline-flex;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .powered-by-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .prime-logo {
+            height: 48px;
+            width: auto;
+            transition: filter 0.3s ease;
+        }
+
+        .prime-logo-dark {
+            display: block;
+        }
+
+        .prime-logo-light {
+            display: none;
+        }
+
+        [data-theme="light"] .prime-logo-dark {
+            display: none;
+        }
+
+        [data-theme="light"] .prime-logo-light {
+            display: block;
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            margin-top: var(--spacing-7);
+        }
+
+        .faq-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-5);
+        }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-4);
+        }
+
+        .faq-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-4);
+        }
+
+        .faq-question {
+            font-size: var(--font-body);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-2);
+        }
+
+        .faq-answer {
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 900px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+
+            .pricing-card.popular {
+                transform: none;
+                order: -1;
+            }
+
+            .pricing-card.popular:hover {
+                transform: translateY(-4px);
+            }
+
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --font-title: 28px;
+                --font-price: 40px;
+                --font-body: 13px;
+            }
+
+            .container {
+                padding-top: var(--spacing-7);
+            }
+
+            .pricing-card {
+                padding: var(--spacing-4);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <a href="index.html" class="back-btn">← Back to Calculator</a>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <span id="themeIcon">🌙</span>
+        </button>
+    </div>
+    
+    <div class="container">
+        <div class="header-section">
+            <h1>Choose Your Plan</h1>
+            <p class="subtitle">Get unlimited access to WiFi capacity insights and premium features for your network</p>
+        </div>
+
+        <div class="pricing-grid">
+            <!-- Basic Plan -->
+            <div class="pricing-card">
+                <div class="plan-header">
+                    <h3 class="plan-name">Basic</h3>
+                    <p class="plan-description">For personal use</p>
+                </div>
+                <div class="plan-price">
+                    <div class="price-amount">
+                        <span class="price-currency">$</span>0
+                    </div>
+                    <p class="price-period">Free forever</p>
+                </div>
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Basic speed testing</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Device capacity calculator</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>ISP & location info</span>
+                    </li>
+                    <li class="feature-item disabled">
+                        <span class="feature-icon">✗</span>
+                        <span>Historical data</span>
+                    </li>
+                    <li class="feature-item disabled">
+                        <span class="feature-icon">✗</span>
+                        <span>Priority support</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Pro Plan -->
+            <div class="pricing-card popular">
+                <div class="popular-badge">Most Popular</div>
+                <div class="plan-header">
+                    <h3 class="plan-name">Pro</h3>
+                    <p class="plan-description">For power users</p>
+                </div>
+                <div class="plan-price">
+                    <div class="price-amount">
+                        <span class="price-currency">$</span>9
+                    </div>
+                    <p class="price-period">per month</p>
+                </div>
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Advanced speed testing</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Unlimited device analysis</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>30-day historical data</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Network optimization tips</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Email support</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Enterprise Plan -->
+            <div class="pricing-card">
+                <div class="plan-header">
+                    <h3 class="plan-name">Enterprise</h3>
+                    <p class="plan-description">For businesses</p>
+                </div>
+                <div class="plan-price">
+                    <div class="price-amount">
+                        <span class="price-currency">$</span>49
+                    </div>
+                    <p class="price-period">per month</p>
+                </div>
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Everything in Pro</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Multi-location monitoring</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>1-year historical data</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>API access</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>24/7 priority support</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Single CTA Button -->
+        <div class="single-cta">
+            <a href="contact.html" class="cta-button primary large">Get Started Today</a>
+        </div>
+
+        <div class="guarantee">
+            <div class="guarantee-icon">🛡️</div>
+            <h4 class="guarantee-title">30-Day Money-Back Guarantee</h4>
+            <p class="guarantee-text">Not satisfied? Get a full refund within 30 days, no questions asked.</p>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h2 class="faq-title">Frequently Asked Questions</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h4 class="faq-question">Can I cancel anytime?</h4>
+                    <p class="faq-answer">Yes! You can cancel your subscription at any time. Your access will continue until the end of your billing period.</p>
+                </div>
+                <div class="faq-item">
+                    <h4 class="faq-question">What payment methods do you accept?</h4>
+                    <p class="faq-answer">We accept all major credit cards, PayPal, and bank transfers for enterprise customers.</p>
+                </div>
+                <div class="faq-item">
+                    <h4 class="faq-question">Is there a free trial?</h4>
+                    <p class="faq-answer">The Basic plan is free forever! For Pro features, we offer a 7-day free trial to test all premium features.</p>
+                </div>
+                <div class="faq-item">
+                    <h4 class="faq-question">Do you offer discounts?</h4>
+                    <p class="faq-answer">Yes! Annual plans get 20% off. Contact us for educational and nonprofit discounts.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Powered By Section -->
+        <div class="powered-by">
+            <span class="powered-text">Powered by</span>
+            <a href="https://cricketnepal.org.np/event/nepal-premier-league/" target="_blank" rel="noopener noreferrer" class="powered-by-link">
+                <img src="npl logo .png" alt="Nepal Premier League" class="prime-logo prime-logo-dark">
+                <img src="npl white.png" alt="Nepal Premier League" class="prime-logo prime-logo-light">
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Theme management
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+
+        // Load saved theme or default to dark
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            html.setAttribute('data-theme', 'light');
+            themeIcon.textContent = '☀️';
+        } else {
+            html.removeAttribute('data-theme');
+            themeIcon.textContent = '🌙';
+        }
+
+        // Theme toggle handler
+        themeToggle.addEventListener('click', function() {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme === 'light' ? 'light' : null);
+            themeIcon.textContent = newTheme === 'light' ? '☀️' : '🌙';
+            localStorage.setItem('theme', newTheme);
+
+            if (newTheme === 'dark') {
+                html.removeAttribute('data-theme');
+            }
+        });
+    </script>
+</body>
+</html>
+
